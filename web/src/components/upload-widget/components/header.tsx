@@ -4,11 +4,12 @@ import * as Collapsible from "@radix-ui/react-collapsible"
 import { Minimize2 } from "lucide-react"
 
 import { Button } from "../../ui/button"
+import { Title } from "./title"
 
 export const Header = () => {
   return (
-    <div className="flex w-full items-center gap-1 border-zinc-800 border-b bg-white/2 px-4 py-2">
-      <span className="flex-1 font-medium text-sm">Upload files (66%)</span>
+    <div className="flex w-full items-center justify-between gap-1 border-zinc-800 border-b bg-white/2 px-4 py-2">
+      <Title />
 
       <Collapsible.Trigger asChild>
         <Button size="icon" className="-mr-2">
