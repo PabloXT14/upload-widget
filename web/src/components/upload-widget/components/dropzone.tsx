@@ -1,6 +1,10 @@
 import { useDropzone } from "react-dropzone"
+import { CircularProgressBar } from "../../ui/circular-progress-bar"
 
 export const Dropzone = () => {
+  const isThereAnyPendingUpload = true
+  const uploadGlobalPercentage = 64
+
   const { getRootProps, getInputProps, isDragActive } = useDropzone({
     multiple: true,
     accept: {
@@ -22,18 +26,30 @@ export const Dropzone = () => {
       >
         <input type="file" {...getInputProps()} />
 
-        <div className="flex flex-col items-center gap-2">
-          <span className="text-xs text-zinc-400">
-            Drag and drop your files here or
-          </span>
-          <span className="font-medium text-xs text-zinc-300 underline">
-            Choose files
-          </span>
-        </div>
+        {isThereAnyPendingUpload ? (
+          <div className="flex flex-col items-center gap-2.5">
+            <CircularProgressBar
+              progress={uploadGlobalPercentage}
+              size={56}
+              strokeWidth={4}
+            />
+
+            <span className="text-xs text-zinc-400">Uploading 2 files...</span>
+          </div>
+        ) : (
+          <div className="flex flex-col items-center gap-2">
+            <span className="text-xs text-zinc-400">
+              Drag and drop your files here or
+            </span>
+            <span className="font-medium text-xs text-zinc-300 underline">
+              Choose files
+            </span>
+          </div>
+        )}
       </div>
 
       {/* SUPPORTED FILES */}
-      <span className="text-xs text-zinc-400">
+      <span className="text-xxs text-zinc-400">
         Only PNG and JPEG are supported
       </span>
     </div>
