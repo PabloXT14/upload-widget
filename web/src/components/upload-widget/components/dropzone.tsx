@@ -1,4 +1,6 @@
 import { useDropzone } from "react-dropzone"
+import { motion } from "motion/react"
+
 import { CircularProgressBar } from "../../ui/circular-progress-bar"
 
 export const Dropzone = () => {
@@ -11,13 +13,18 @@ export const Dropzone = () => {
       "image/jpeg": [],
       "image/png": [],
     },
-    onDrop: (acceptedFiles, rejectedFiles, event) => {
+    onDrop: (acceptedFiles, _rejectedFiles, _event) => {
       console.log("Accepted files:", acceptedFiles)
     },
   })
 
   return (
-    <div className="flex flex-col gap-3 px-3">
+    <motion.div
+      className="flex flex-col gap-3 px-3"
+      initial={{ opacity: 0 }}
+      animate={{ opacity: 1 }}
+      transition={{ duration: 0.2 }}
+    >
       {/* DROPZONE */}
       <div
         data-active={isDragActive}
@@ -52,6 +59,6 @@ export const Dropzone = () => {
       <span className="text-xxs text-zinc-400">
         Only PNG and JPEG are supported
       </span>
-    </div>
+    </motion.div>
   )
 }

@@ -2,12 +2,18 @@
 
 import * as Progress from "@radix-ui/react-progress"
 import { Download, ImageUp, Link2, RefreshCcw, Trash, X } from "lucide-react"
+import { motion } from "motion/react"
 
 import { Button } from "../../ui/button"
 
 export const UploadItem = () => {
   return (
-    <div className="relative flex flex-col gap-3 overflow-hidden rounded-lg bg-white/2 p-3 shadow-shape-content">
+    <motion.div
+      className="relative flex flex-col gap-3 overflow-hidden rounded-lg bg-white/2 p-3 shadow-shape-content"
+      initial={{ opacity: 0 }}
+      animate={{ opacity: 1 }}
+      transition={{ duration: 0.4 }}
+    >
       {/* TEXTS */}
       <div className="flex flex-col gap-1">
         <div className="flex items-center gap-1">
@@ -75,6 +81,6 @@ export const UploadItem = () => {
           <span className="sr-only">Delete image</span>
         </Button>
       </div>
-    </div>
+    </motion.div>
   )
 }
