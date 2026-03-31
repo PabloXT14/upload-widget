@@ -1,5 +1,11 @@
 @import "tailwindcss";
 
+@property --border-angle {
+  syntax: "<angle>";
+  initial-value: 0deg;
+  inherits: false;
+}
+
 @theme {
   --font-sans: 'Inter', sans-serif;
 
@@ -7,10 +13,45 @@
 
   --shadow-shape: 0px 8px 8px rgba(0, 0, 0, 0.1), 0px 4px 4px rgba(0, 0, 0, 0.1), 0px 2px 2px rgba(0, 0, 0, 0.1), 0px 0px 0px 1px rgba(0, 0, 0, 0.1), inset 0px 0px 0px 1px rgba(255, 255, 255, 0.03), inset 0px 1px 0px rgba(255, 255, 255, 0.03);
   --shadow-shape-content: 0px 0px 0px 1px rgba(0, 0, 0, 0.25), inset 0px 1px 0px rgba(255, 255, 255, 0.02), inset 0px 0px 0px 1px rgba(255, 255, 255, 0.02);
+
+  --border-angle: 0deg;
+  --animate-border: border 2s linear infinite;
+
+  @keyframes border {
+    0% {
+      --border-angle: 0deg;
+    }
+    100% {
+      --border-angle: 360deg;
+    }
+  }
 }
 
 @layer base {
   button {
     @apply cursor-pointer;
+  }
+}
+
+@layer utilities {
+  .animated-border {
+    background:
+      linear-gradient(
+          45deg,
+          #09090B,
+          --theme(--color-zinc-900) 50%,
+          #09090B
+        )
+        padding-box,
+      conic-gradient(
+          from var(--border-angle, 0deg),
+          --theme(--color-zinc-700/.48) 80%,
+          --theme(--color-indigo-500) 86%,
+          --theme(--color-indigo-300) 90%,
+          --theme(--color-indigo-500) 94%,
+          --theme(--color-zinc-600/.48)
+        )
+        border-box;
+    animation: border 2s linear infinite;
   }
 }

@@ -2,6 +2,7 @@
 
 import * as Collapsible from "@radix-ui/react-collapsible"
 import { motion, useCycle } from "motion/react"
+import { twMerge } from "tailwind-merge"
 
 import { Dropzone } from "./components/dropzone"
 import { Header } from "./components/header"
@@ -11,14 +12,22 @@ import { MinimizedButton } from "./components/minimized-button"
 export const UploadWidget = () => {
   const [isWidgetOpen, toggleWidgetOpen] = useCycle(false, true)
 
+  const isThereAnyPendingUpload = true
+
+  const shouldAnimateBorder = !isWidgetOpen && isThereAnyPendingUpload
+
   return (
     <Collapsible.Root
       open={isWidgetOpen}
       onOpenChange={() => toggleWidgetOpen()}
-      className="w-full max-w-100"
+      asChild
     >
       <motion.div
-        className="mx-auto w-full overflow-hidden rounded-lg bg-zinc-900 shadow-shape"
+        data-progress={isThereAnyPendingUpload}
+        className={twMerge(
+          "mx-auto w-full max-w-100 overflow-hidden rounded-lg border border-transparent bg-zinc-900 data-[state=closed]:data-[progress=false]:shadow-shape data-[state=open]:shadow-shape",
+          shouldAnimateBorder && "animated-border"
+        )}
         animate={isWidgetOpen ? "open" : "closed"}
         variants={{
           closed: {
