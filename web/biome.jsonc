@@ -18,7 +18,8 @@
     "rules": {
       "style": {
         "noEnum": "off",
-        "noNonNullAssertion": "off"
+        "noNonNullAssertion": "off",
+        "useConsistentTypeDefinitions": "off"
       },
       "correctness": {
         "useExhaustiveDependencies": "info"
