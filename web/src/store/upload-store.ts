@@ -1,4 +1,6 @@
 import { create } from "zustand"
+import { immer } from "zustand/middleware/immer"
+import { enableMapSet } from "immer"
 
 export type Upload = {
   name: string
@@ -10,20 +12,27 @@ type UploadStoreState = {
   addUploads: (files: File[]) => void
 }
 
-export const useUploadStore = create<UploadStoreState>((set, _get) => ({
-  uploads: new Map(),
-  addUploads: (files) => {
-    for (const file of files) {
-      const uploadId = crypto.randomUUID()
+enableMapSet() // Enable Map and Set support in Immer
 
-      const upload: Upload = {
-        name: file.name,
-        file,
+export const useUploadStore = create<
+  UploadStoreState,
+  [["zustand/immer", never]]
+>(
+  immer((set, _get) => ({
+    uploads: new Map(),
+    addUploads: (files) => {
+      for (const file of files) {
+        const uploadId = crypto.randomUUID()
+
+        const upload: Upload = {
+          name: file.name,
+          file,
+        }
+
+        set((state) => {
+          state.uploads.set(uploadId, upload)
+        })
       }
-
-      set((state) => ({
-        uploads: new Map(state.uploads).set(uploadId, upload),
-      }))
-    }
-  },
-}))
+    },
+  }))
+)
