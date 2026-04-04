@@ -2,6 +2,7 @@ import { uploadWidgetApi } from "../api/upload-widget-api"
 
 type UploadFileToStorageParams = {
   file: File
+  onProgress: (sizeInBytes: number) => void
 }
 
 type UploadFileToStorageResponse = {
@@ -13,7 +14,7 @@ type UploadFileToStorageOptions = {
 }
 
 export async function uploadFileToStorage(
-  { file }: UploadFileToStorageParams,
+  { file, onProgress }: UploadFileToStorageParams,
   options?: UploadFileToStorageOptions
 ) {
   const formData = new FormData()
@@ -28,6 +29,9 @@ export async function uploadFileToStorage(
         "Content-Type": "multipart/form-data",
       },
       signal: options?.signal,
+      onUploadProgress: (progressEvent) => {
+        onProgress(progressEvent.loaded) // Call the onProgress callback with the number of bytes uploaded
+      },
     }
   )
 

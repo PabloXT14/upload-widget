@@ -3,12 +3,15 @@ import { immer } from "zustand/middleware/immer"
 import { enableMapSet } from "immer"
 
 import { uploadFileToStorage } from "../http/upload-file-to-storage"
+import { CanceledError } from "axios"
 
 export type Upload = {
   name: string
   file: File
   abortController: AbortController
   status: "progress" | "success" | "error" | "canceled"
+  originalSizeInBytes: number
+  uploadSizeInBytes: number
 }
 
 type UploadStoreState = {
@@ -33,7 +36,17 @@ export const useUploadStore = create<
 
       try {
         await uploadFileToStorage(
-          { file: upload.file },
+          {
+            file: upload.file,
+            onProgress: (sizeInBytes) => {
+              set((state) => {
+                state.uploads.set(uploadId, {
+                  ...upload,
+                  uploadSizeInBytes: sizeInBytes,
+                })
+              })
+            },
+          },
           { signal: upload.abortController?.signal }
         )
 
@@ -43,7 +56,18 @@ export const useUploadStore = create<
             status: "success",
           })
         })
-      } catch (_error) {
+      } catch (error) {
+        if (error instanceof CanceledError) {
+          set((state) => {
+            state.uploads.set(uploadId, {
+              ...upload,
+              status: "canceled",
+            })
+          })
+
+          return
+        }
+
         set((state) => {
           state.uploads.set(uploadId, {
             ...upload,
@@ -63,6 +87,8 @@ export const useUploadStore = create<
           file,
           abortController,
           status: "progress",
+          originalSizeInBytes: file.size,
+          uploadSizeInBytes: 0, // You would update this as the upload progresses
         }
 
         set((state) => {
@@ -82,13 +108,6 @@ export const useUploadStore = create<
 
       // Here you would also want to cancel the actual upload request to the server
       upload.abortController.abort()
-
-      set((state) => {
-        state.uploads.set(uploadId, {
-          ...upload,
-          status: "canceled",
-        })
-      })
     }
 
     return {
