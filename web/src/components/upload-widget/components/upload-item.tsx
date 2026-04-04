@@ -1,20 +1,22 @@
 /** biome-ignore-all lint/performance/noNamespaceImport: needed */
 
 import * as Progress from "@radix-ui/react-progress"
-import { Download, ImageUp, Link2, RefreshCcw, Trash, X } from "lucide-react"
+import { Download, ImageUp, Link2, RefreshCcw, X } from "lucide-react"
 import { motion } from "motion/react"
 
 import { formatBytes } from "../../../utils/format.bytes"
+import { useUploadStore, type Upload } from "../../../store/upload-store"
 
 import { Button } from "../../ui/button"
 
-import type { Upload } from "../../../store/upload-store"
-
 type UploadItemProps = {
   upload: Upload
+  uploadId: string
 }
 
-export const UploadItem = ({ upload }: UploadItemProps) => {
+export const UploadItem = ({ upload, uploadId }: UploadItemProps) => {
+  const cancelUpload = useUploadStore((state) => state.cancelUpload)
+
   return (
     <motion.div
       className="relative flex flex-col gap-3 overflow-hidden rounded-lg bg-white/2 p-3 shadow-shape-content"
@@ -44,49 +46,66 @@ export const UploadItem = ({ upload }: UploadItemProps) => {
           <div className="size-1 rounded-full bg-zinc-700" />
 
           {/* PROGRESS */}
-          <span>45%</span>
+          {upload.status === "progress" && <span>45%</span>}
+
+          {upload.status === "success" && (
+            <span className="text-green-400">Upload finished</span>
+          )}
+
+          {upload.status === "error" && (
+            <span className="text-red-400">Upload failed</span>
+          )}
+
+          {upload.status === "canceled" && (
+            <span className="text-yellow-400">Upload canceled</span>
+          )}
         </span>
       </div>
 
       {/* PROGRESS BAR */}
-      <Progress.Root className="h-1 overflow-hidden rounded-full bg-zinc-800">
+      <Progress.Root
+        data-status={upload.status}
+        className="group h-1 overflow-hidden rounded-full bg-zinc-800"
+      >
         <Progress.Indicator
-          className="h-1 bg-indigo-500"
+          className="h-1 bg-indigo-500 group-data-[status=canceled]:bg-yellow-400 group-data-[status=error]:bg-red-400 group-data-[status=success]:bg-green-400"
           style={{
-            width: "45%",
+            width: upload.status === "progress" ? "45%" : "100%",
           }}
         />
       </Progress.Root>
 
       {/* ACTIONS */}
       <div className="absolute top-2.5 right-2.5 flex items-center gap-1">
-        <Button size="icon-sm">
+        <Button disabled={upload.status !== "success"} size="icon-sm">
           <Download className="size-4" strokeWidth={1.5} />
 
           <span className="sr-only">Download compressed image</span>
         </Button>
 
-        <Button size="icon-sm">
+        <Button disabled={upload.status !== "success"} size="icon-sm">
           <Link2 className="size-4" strokeWidth={1.5} />
 
           <span className="sr-only">Copy remote URL</span>
         </Button>
 
-        <Button size="icon-sm">
+        <Button
+          disabled={!["canceled", "error"].includes(upload.status)}
+          size="icon-sm"
+        >
           <RefreshCcw className="size-4" strokeWidth={1.5} />
 
           <span className="sr-only">Retry upload</span>
         </Button>
 
-        <Button size="icon-sm">
+        <Button
+          disabled={upload.status !== "progress"}
+          size="icon-sm"
+          onClick={() => cancelUpload(uploadId)}
+        >
           <X className="size-4" strokeWidth={1.5} />
 
           <span className="sr-only">Cancel upload</span>
-        </Button>
-
-        <Button size="icon-sm">
-          <Trash className="size-4" strokeWidth={1.5} />
-          <span className="sr-only">Delete image</span>
         </Button>
       </div>
     </motion.div>

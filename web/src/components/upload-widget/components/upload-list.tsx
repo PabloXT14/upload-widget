@@ -20,7 +20,11 @@ export const UploadList = () => {
       ) : (
         <div className="flex flex-col gap-2">
           {Array.from(uploads.entries()).map(([uploadId, upload]) => (
-            <UploadItem key={`upload-item-${uploadId}`} upload={upload} />
+            <UploadItem
+              key={`upload-item-${uploadId}`}
+              upload={upload}
+              uploadId={uploadId}
+            />
           ))}
         </div>
       )}

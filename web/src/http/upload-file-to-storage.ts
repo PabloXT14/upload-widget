@@ -8,7 +8,14 @@ type UploadFileToStorageResponse = {
   url: string
 }
 
-export async function uploadFileToStorage({ file }: UploadFileToStorageParams) {
+type UploadFileToStorageOptions = {
+  signal?: AbortSignal
+}
+
+export async function uploadFileToStorage(
+  { file }: UploadFileToStorageParams,
+  options?: UploadFileToStorageOptions
+) {
   const formData = new FormData()
 
   formData.append("file", file)
@@ -20,6 +27,7 @@ export async function uploadFileToStorage({ file }: UploadFileToStorageParams) {
       headers: {
         "Content-Type": "multipart/form-data",
       },
+      signal: options?.signal,
     }
   )
 
