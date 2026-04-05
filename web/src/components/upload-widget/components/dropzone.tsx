@@ -1,15 +1,14 @@
 import { useDropzone } from "react-dropzone"
 import { motion } from "motion/react"
 
-import { useUploadStore } from "../../../store/upload-store"
+import { usePendingUploads, useUploadStore } from "../../../store/upload-store"
 
 import { CircularProgressBar } from "../../ui/circular-progress-bar"
 
 export const Dropzone = () => {
-  const { addUploads } = useUploadStore()
-
-  const isThereAnyPendingUpload = false
-  const uploadGlobalPercentage = 64
+  const addUploads = useUploadStore((state) => state.addUploads)
+  const amountOfUploads = useUploadStore((state) => state.uploads.size)
+  const { isThereAnyPendingUpload, globalPercentage } = usePendingUploads()
 
   const { getRootProps, getInputProps, isDragActive } = useDropzone({
     multiple: true,
@@ -40,12 +39,14 @@ export const Dropzone = () => {
         {isThereAnyPendingUpload ? (
           <div className="flex flex-col items-center gap-2.5">
             <CircularProgressBar
-              progress={uploadGlobalPercentage}
+              progress={globalPercentage}
               size={56}
               strokeWidth={4}
             />
 
-            <span className="text-xs text-zinc-400">Uploading 2 files...</span>
+            <span className="text-xs text-zinc-400">
+              Uploading {amountOfUploads} files...
+            </span>
           </div>
         ) : (
           <div className="flex flex-col items-center gap-2">
