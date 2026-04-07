@@ -51,12 +51,12 @@ export function compressImage({
         // calculate the new dimensions while maintaining the aspect ratio
         if (width > height) {
           if (width > maxWidth) {
-            width = maxWidth
             height *= maxWidth / width
+            width = maxWidth
           }
         } else if (height > maxHeight) {
-          height = maxHeight
           width *= maxHeight / height
+          height = maxHeight
         }
 
         canvas.width = width

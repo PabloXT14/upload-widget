@@ -18,9 +18,19 @@ export const UploadItem = ({ upload, uploadId }: UploadItemProps) => {
   const cancelUpload = useUploadStore((state) => state.cancelUpload)
 
   const progressPercentage = Math.min(
-    Math.round((upload.uploadSizeInBytes / upload.originalSizeInBytes) * 100),
+    upload.compressedSizeInBytes
+      ? Math.round(
+          (upload.uploadSizeInBytes / upload.compressedSizeInBytes) * 100
+        )
+      : 0,
     100
   )
+
+  const handleCopyRemoteUrl = () => {
+    if (upload.remoteUrl) {
+      navigator.clipboard.writeText(upload.remoteUrl)
+    }
+  }
 
   return (
     <motion.div
@@ -46,8 +56,8 @@ export const UploadItem = ({ upload, uploadId }: UploadItemProps) => {
 
           {/* COMPRESSION RATIO */}
           <span>
-            300KB
-            <span className="ml-1 text-green-400">-94%</span>
+            {formatBytes(upload.compressedSizeInBytes || 0)}{" "}
+            <span className="ml-1 text-green-400">-97%</span>
           </span>
 
           <div className="size-1 rounded-full bg-zinc-700" />
@@ -92,7 +102,11 @@ export const UploadItem = ({ upload, uploadId }: UploadItemProps) => {
           <span className="sr-only">Download compressed image</span>
         </Button>
 
-        <Button disabled={upload.status !== "success"} size="icon-sm">
+        <Button
+          disabled={!upload.remoteUrl}
+          size="icon-sm"
+          onClick={handleCopyRemoteUrl}
+        >
           <Link2 className="size-4" strokeWidth={1.5} />
 
           <span className="sr-only">Copy remote URL</span>
