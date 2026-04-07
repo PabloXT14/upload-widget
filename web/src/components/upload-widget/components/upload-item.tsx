@@ -26,6 +26,14 @@ export const UploadItem = ({ upload, uploadId }: UploadItemProps) => {
     100
   )
 
+  const compressionPercentage =
+    upload.compressedSizeInBytes &&
+    Math.round(
+      ((upload.originalSizeInBytes - upload.compressedSizeInBytes) /
+        upload.originalSizeInBytes) *
+        100
+    )
+
   const handleCopyRemoteUrl = () => {
     if (upload.remoteUrl) {
       navigator.clipboard.writeText(upload.remoteUrl)
@@ -56,8 +64,10 @@ export const UploadItem = ({ upload, uploadId }: UploadItemProps) => {
 
           {/* COMPRESSION RATIO */}
           <span>
-            {formatBytes(upload.compressedSizeInBytes || 0)}{" "}
-            <span className="ml-1 text-green-400">-97%</span>
+            {formatBytes(upload.compressedSizeInBytes || 0)}
+            <span className="ml-1 text-green-400">
+              -{compressionPercentage}%
+            </span>
           </span>
 
           <div className="size-1 rounded-full bg-zinc-700" />
@@ -96,10 +106,15 @@ export const UploadItem = ({ upload, uploadId }: UploadItemProps) => {
 
       {/* ACTIONS */}
       <div className="absolute top-2.5 right-2.5 flex items-center gap-1">
-        <Button disabled={upload.status !== "success"} size="icon-sm">
-          <Download className="size-4" strokeWidth={1.5} />
-
-          <span className="sr-only">Download compressed image</span>
+        <Button
+          aria-disabled={upload.status !== "success"}
+          size="icon-sm"
+          asChild
+        >
+          <a href={upload.remoteUrl} download={upload.file.name}>
+            <Download className="size-4" strokeWidth={1.5} />
+            <span className="sr-only">Download compressed image</span>
+          </a>
         </Button>
 
         <Button
