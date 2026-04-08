@@ -1,10 +1,12 @@
 /** biome-ignore-all lint/performance/noNamespaceImport: needed */
 
+import { useState } from "react"
 import * as Progress from "@radix-ui/react-progress"
-import { Download, ImageUp, Link2, RefreshCcw, X } from "lucide-react"
+import { Check, Download, ImageUp, Link2, RefreshCcw, X } from "lucide-react"
 import { motion } from "motion/react"
 
 import { formatBytes } from "../../../utils/format.bytes"
+import { downloadUrl } from "../../../utils/download-url"
 import { useUploadStore, type Upload } from "../../../store/upload-store"
 
 import { Button } from "../../ui/button"
@@ -15,7 +17,10 @@ type UploadItemProps = {
 }
 
 export const UploadItem = ({ upload, uploadId }: UploadItemProps) => {
+  const [copied, setCopied] = useState(false)
+
   const cancelUpload = useUploadStore((state) => state.cancelUpload)
+  const retryUpload = useUploadStore((state) => state.retryUpload)
 
   const progressPercentage = Math.min(
     upload.compressedSizeInBytes
@@ -34,9 +39,22 @@ export const UploadItem = ({ upload, uploadId }: UploadItemProps) => {
         100
     )
 
-  const handleCopyRemoteUrl = () => {
-    if (upload.remoteUrl) {
-      navigator.clipboard.writeText(upload.remoteUrl)
+  const handleCopyRemoteUrl = async () => {
+    if (!upload.remoteUrl) {
+      return
+    }
+
+    try {
+      await navigator.clipboard.writeText(upload.remoteUrl)
+      setCopied(true)
+
+      const timer = setTimeout(() => setCopied(false), 1500)
+
+      return () => clearTimeout(timer)
+    } catch {
+      setCopied(false)
+      // biome-ignore lint/suspicious/noAlert: needed
+      alert("Nao foi possível copiar o link.")
     }
   }
 
@@ -51,7 +69,9 @@ export const UploadItem = ({ upload, uploadId }: UploadItemProps) => {
       <div className="flex flex-col gap-1">
         <div className="flex items-center gap-1">
           <ImageUp className="size-3 text-zinc-300" strokeWidth={1.5} />
-          <span className="font-medium text-xs">{upload.name}</span>
+          <span className="max-w-45 truncate font-medium text-xs">
+            {upload.name}
+          </span>
         </div>
 
         <span className="flex items-center gap-1.5 text-xxs text-zinc-400">
@@ -105,16 +125,18 @@ export const UploadItem = ({ upload, uploadId }: UploadItemProps) => {
       </Progress.Root>
 
       {/* ACTIONS */}
-      <div className="absolute top-2.5 right-2.5 flex items-center gap-1">
+      <div className="absolute top-2 right-2 flex items-center gap-1">
         <Button
-          aria-disabled={upload.status !== "success"}
+          aria-disabled={!upload.remoteUrl}
           size="icon-sm"
-          asChild
+          onClick={() => {
+            if (upload.remoteUrl) {
+              downloadUrl(upload.remoteUrl)
+            }
+          }}
         >
-          <a href={upload.remoteUrl} download={upload.file.name}>
-            <Download className="size-4" strokeWidth={1.5} />
-            <span className="sr-only">Download compressed image</span>
-          </a>
+          <Download className="size-4" strokeWidth={1.5} />
+          <span className="sr-only">Download compressed image</span>
         </Button>
 
         <Button
@@ -122,7 +144,11 @@ export const UploadItem = ({ upload, uploadId }: UploadItemProps) => {
           size="icon-sm"
           onClick={handleCopyRemoteUrl}
         >
-          <Link2 className="size-4" strokeWidth={1.5} />
+          {copied ? (
+            <Check className="size-4" strokeWidth={1.5} />
+          ) : (
+            <Link2 className="size-4" strokeWidth={1.5} />
+          )}
 
           <span className="sr-only">Copy remote URL</span>
         </Button>
@@ -130,6 +156,7 @@ export const UploadItem = ({ upload, uploadId }: UploadItemProps) => {
         <Button
           disabled={!["canceled", "error"].includes(upload.status)}
           size="icon-sm"
+          onClick={() => retryUpload(uploadId)}
         >
           <RefreshCcw className="size-4" strokeWidth={1.5} />
 

@@ -11,7 +11,7 @@ import { uploadFileToStorage } from "../http/upload-file-to-storage"
 export type Upload = {
   name: string
   file: File
-  abortController: AbortController
+  abortController?: AbortController
   status: "progress" | "success" | "error" | "canceled"
   originalSizeInBytes: number
   uploadSizeInBytes: number
@@ -23,6 +23,7 @@ type UploadStoreState = {
   uploads: Map<string, Upload>
   addUploads: (files: File[]) => void
   cancelUpload: (uploadId: string) => void
+  retryUpload: (uploadId: string) => void
 }
 
 enableMapSet() // Enable Map and Set support in Immer
@@ -51,6 +52,16 @@ export const useUploadStore = create<
         return
       }
 
+      const abortController = new AbortController()
+
+      updateUpload(uploadId, {
+        uploadSizeInBytes: 0,
+        compressedSizeInBytes: undefined,
+        remoteUrl: undefined,
+        status: "progress",
+        abortController,
+      })
+
       try {
         const compressedFile = await compressImage({
           file: upload.file,
@@ -69,7 +80,7 @@ export const useUploadStore = create<
               updateUpload(uploadId, { uploadSizeInBytes: sizeInBytes })
             },
           },
-          { signal: upload.abortController?.signal }
+          { signal: abortController.signal }
         )
 
         updateUpload(uploadId, { status: "success", remoteUrl: url })
@@ -87,12 +98,10 @@ export const useUploadStore = create<
     const addUploads = (files: File[]) => {
       for (const file of files) {
         const uploadId = crypto.randomUUID()
-        const abortController = new AbortController()
 
         const upload: Upload = {
           name: file.name,
           file,
-          abortController,
           status: "progress",
           originalSizeInBytes: file.size,
           uploadSizeInBytes: 0, // You would update this as the upload progresses
@@ -114,13 +123,18 @@ export const useUploadStore = create<
       }
 
       // Here you would also want to cancel the actual upload request to the server
-      upload.abortController.abort()
+      upload.abortController?.abort()
+    }
+
+    const retryUpload = (uploadId: string) => {
+      processUpload(uploadId)
     }
 
     return {
       uploads: new Map(),
       addUploads,
       cancelUpload,
+      retryUpload,
     }
   })
 )
